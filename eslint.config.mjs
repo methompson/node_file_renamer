@@ -54,7 +54,7 @@ export default [
       ],
       'no-trailing-spaces': 'error',
 
-      'arrow-body-style': ['error', 'as-needed'],
+      'arrow-body-style': ['off', 'as-needed'],
       'arrow-parens': ['error', 'always'],
       'max-len': [
         'warn',
