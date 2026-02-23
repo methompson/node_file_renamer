@@ -14,15 +14,10 @@ async function main() {
     .version('1.0.0');
 
   program
-    .command('rename')
-    .description('Rename files in a directory')
-    .option(
-      '-d, --directory <path>',
-      'Directory containing files to rename',
-      process.cwd(),
-    )
+    .option('-d, --directory <path>', 'Directory containing files to rename')
     .action(async (options) => {
-      await mainMenu(options.directory).catch((error) => {
+      const dir = options.directory ?? process.cwd();
+      await mainMenu(dir).catch((error) => {
         console.error('Error:', error);
       });
     });
