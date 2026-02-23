@@ -14,6 +14,7 @@ interface KeyboardNumberInputConfig {
   min?: number;
   max?: number;
   message?: string;
+  currentValue?: number;
 }
 
 function testNumber(opt: { n: number; max?: number; min?: number }) {
@@ -28,16 +29,22 @@ function testNumber(opt: { n: number; max?: number; min?: number }) {
   return true;
 }
 
+/**
+ * @param config The configuration for the number input prompt
+ * @param filenameCallback Config with the new number
+ * @param filesList The files to show in the preview
+ * @returns The number entered by the user
+ */
 export async function getNumberWithFileUpdates(
   config: KeyboardNumberInputConfig,
-  filenameCallback: (num: number, name: string) => string,
+  filenameCallback: (num: number, name: string, index: number) => string,
   filesList: string[],
 ) {
   const keyboardNumberInput = createPrompt<number, KeyboardNumberInputConfig>(
     (config, done) => {
       const prompt = config.message ?? 'Please enter a number:';
 
-      const [num, setNum] = useState(0);
+      const [num, setNum] = useState(config.currentValue ?? 0);
       const [warning, setWarning] = useState('');
 
       // Implement logic
@@ -91,9 +98,10 @@ export async function getNumberWithFileUpdates(
         }
       });
 
+      let i = 0;
       const fileUpdates = filesList
         .slice(0, 5)
-        .map((f) => `${f} → ${filenameCallback(num, f)}`)
+        .map((f) => `${f} → ${filenameCallback(num, f, i++)}`)
         .join('\n');
 
       return `${fileUpdates}\n${chalk.green('?')} ${prompt} ${num}${warning ? `\n${chalk.red(warning)}` : ''}`;

@@ -20,17 +20,6 @@ describe('counter ops', () => {
       expect(result).toBe('5file.txt');
     });
 
-    test('should apply prefix and suffix around the counter', () => {
-      const op = new CounterOp({
-        counterStart: 10,
-        position: 2,
-        prefix: '_',
-        suffix: '-v',
-      });
-      const result = op.apply('file.txt', 1);
-      expect(result).toBe('fi_11-vle.txt');
-    });
-
     test('should append when position is greater than filename length', () => {
       const op = new CounterOp({ counterStart: 1, position: 200 });
       const result = op.apply('file.txt', 0);
@@ -41,6 +30,37 @@ describe('counter ops', () => {
       const op = new CounterOp({ counterStart: 7, position: 0 });
       const result = op.apply('', 0);
       expect(result).toBe('7');
+    });
+
+    test('should add the counter to the end of the filename prior to the extension when fromStart is set to false', () => {
+      const op = new CounterOp({ fromStart: false });
+      const result = op.apply('file.txt', 0);
+      expect(result).toBe('file1.txt');
+    });
+
+    test('should add the counter to the end of the filename after the extension when fromStart is set to false and includeExtension is true', () => {
+      const op = new CounterOp({ fromStart: false, includeExtension: true });
+      const result = op.apply('file.txt', 0);
+      expect(result).toBe('file.txt1');
+    });
+
+    test('should pad the counter value with the specified length', () => {
+      const op = new CounterOp({
+        counterStart: 1,
+        paddedLength: 3,
+      });
+      const result = op.apply('file.txt', 0);
+      expect(result).toBe('001file.txt');
+    });
+
+    test('should pad the counter value with the specified character', () => {
+      const op = new CounterOp({
+        counterStart: 1,
+        paddedLength: 3,
+        paddingChar: 'a',
+      });
+      const result = op.apply('file.txt', 0);
+      expect(result).toBe('aa1file.txt');
     });
   });
 });

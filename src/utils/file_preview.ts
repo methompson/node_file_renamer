@@ -16,7 +16,7 @@ export function showFileListPreview(
 
   let index = 0;
   const previewLines = filesToShow.map((file) => {
-    const transformed = ops.reduce((name, op) => op.apply(name, index), file);
+    const transformed = FileOp.applyAllToFile(file, ops, index);
     index++;
 
     return `${chalk.dim(file.padEnd(longestFile.length))} → ${chalk.green(

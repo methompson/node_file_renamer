@@ -1,9 +1,11 @@
-import { FileOp } from '@/string_ops/file_op';
+import { rename } from 'node:fs/promises';
+import { join } from 'node:path';
+
 import { confirm } from '@inquirer/prompts';
 import chalk from 'chalk';
-import { rename } from 'fs/promises';
-import { join } from 'path';
-import { showFileListPreview } from './file_preview';
+
+import { FileOp } from '@/string_ops/file_op';
+import { showFileListPreview } from '@/utils/file_preview';
 
 export async function executeRename(
   directory: string,
@@ -28,26 +30,20 @@ export async function executeRename(
   // Execute operations
   console.log(chalk.blue('\n⚙️  Applying operations...\n'));
 
-  for (let i = 0; i < fileList.length; i++) {
-    const originalFile = fileList[i] || '';
-    let newFileName: string = originalFile;
-
-    // Apply each operation in sequence
-    for (let opIndex = 0; opIndex < operations.length; opIndex++) {
-      const op = operations[opIndex];
-      if (op) {
-        newFileName = op.apply(newFileName, i);
-      }
+  const promises: Promise<unknown>[] = [];
+  fileList.forEach((file, index) => {
+    const result = FileOp.applyAllToFile(file, operations, index);
+    if (file === result) {
+      // No change, skip
+      return;
     }
 
-    // Only rename if the name changed
-    if (originalFile !== newFileName) {
-      const oldPath = join(directory, originalFile);
-      const newPath = join(directory, newFileName);
-      await rename(oldPath, newPath);
-      console.log(chalk.green(`✓ ${originalFile} → ${newFileName}`));
-    }
-  }
+    const oldPath = join(directory, file);
+    const newPath = join(directory, result);
+    promises.push(rename(oldPath, newPath));
+  });
+
+  await Promise.all(promises);
 
   console.log(
     chalk.green(`\n✅ Successfully processed ${fileList.length} files!\n`),
