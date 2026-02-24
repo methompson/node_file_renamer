@@ -6,6 +6,84 @@ import { TrimStartOp, TrimEndOp, TrimBetweenOp } from '@/string_ops/trim';
 import { getNumberWithFileUpdates } from '@/utils/number_input';
 import { showFileListPreview } from '@/utils/file_preview';
 
+export async function configureTrimOps(files: string[]) {
+  let includeExtension = false;
+  let trimLength = 0;
+  let start = true;
+
+  const makeOp = (opt?: { trimLength?: number; includeExtension?: boolean }) =>
+    start
+      ? new TrimStartOp({
+          trimLength: opt?.trimLength ?? trimLength,
+          includeExtension: opt?.includeExtension ?? includeExtension,
+        })
+      : new TrimEndOp({
+          trimLength: opt?.trimLength ?? trimLength,
+          includeExtension: opt?.includeExtension ?? includeExtension,
+        });
+
+  while (true) {
+    console.clear();
+
+    const op = makeOp();
+    showFileListPreview(files, [op]);
+
+    const menu = await select({
+      message: 'Trim from start',
+      choices: [
+        {
+          name: `Trim from? Current: ${start ? 'Start' : 'End'}`,
+          value: 'toggleStart',
+        },
+        {
+          name: `Include extension? ${includeExtension ? 'Yes' : 'No'}`,
+          value: 'toggleExtension',
+        },
+        {
+          name: `Trim Length: ${trimLength}`,
+          value: 'setTrimLength',
+        },
+        {
+          name: 'Cancel',
+          value: 'cancel',
+        },
+        {
+          name: 'Add File Op',
+          value: 'add',
+        },
+      ],
+    });
+
+    switch (menu) {
+      case 'toggleStart':
+        start = !start;
+        break;
+      case 'toggleExtension':
+        includeExtension = !includeExtension;
+        break;
+      case 'setTrimLength':
+        trimLength = await getNumberWithFileUpdates(
+          {
+            message: 'Number of characters to trim:',
+            min: 0,
+            currentValue: trimLength,
+          },
+          (num, name) => {
+            const startTrim = makeOp({ trimLength: num });
+
+            return startTrim.apply(name);
+          },
+          files,
+        );
+        break;
+      case 'cancel':
+        return undefined;
+      case 'add':
+        return op;
+    }
+  }
+}
+
 /**
  * @param files The file names as they exist up to this point
  * @returns A TrimStartOp

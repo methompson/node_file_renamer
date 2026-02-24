@@ -10,20 +10,32 @@ export function showFileListPreview(
 
   const filesToShow = shortPreview ? files.slice(0, 5) : files;
 
-  const longestFile = filesToShow.reduce((longest, file) => {
-    return file.length > longest.length ? file : longest;
-  }, '');
+  const longestFile = findLongestFileLength(filesToShow);
 
   let index = 0;
   const previewLines = filesToShow.map((file) => {
     const transformed = FileOp.applyAllToFile(file, ops, index);
     index++;
 
-    return `${chalk.dim(file.padEnd(longestFile.length))} → ${chalk.green(
-      transformed,
-    )}`;
+    return fileListPreviewLine(file, transformed, longestFile);
   });
 
   console.log(chalk.blue('Files'));
   console.log(previewLines.join('\n'));
+}
+
+export function findLongestFileLength(files: string[]): number {
+  return files.reduce((longest, file) => {
+    return file.length > longest.length ? file : longest;
+  }, '').length;
+}
+
+export function fileListPreviewLine(
+  oldName: string,
+  newName: string,
+  longestFileLength: number,
+): string {
+  return `${chalk.dim(oldName.padEnd(longestFileLength))} → ${chalk.green(
+    newName,
+  )}`;
 }

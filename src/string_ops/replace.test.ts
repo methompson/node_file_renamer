@@ -62,4 +62,10 @@ describe('ReplaceOp', () => {
     const result = op.apply('file.txt');
     expect(result).toBe('file.txt');
   });
+
+  test('should handle an empty search value by returning the original string', () => {
+    const op = new ReplaceOp({ searchValue: '', replaceValue: 'x' });
+    const result = op.apply('hello world');
+    expect(result).toBe('hello world');
+  });
 });

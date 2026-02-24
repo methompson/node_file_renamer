@@ -1,12 +1,12 @@
-import { input, select } from '@inquirer/prompts';
+import { select } from '@inquirer/prompts';
 
-import { FileOp } from '@/string_ops/file_op';
 import { ReplaceOp } from '@/string_ops/replace';
 import { showFileListPreview } from '@/utils/file_preview';
+import { getStringWithFileUpdates } from '@/utils/string_input_with_preview';
 
 export async function configureReplaceOp(
   files: string[],
-): Promise<FileOp | undefined> {
+): Promise<ReplaceOp | undefined> {
   let searchValue = '';
   let replaceValue = '';
   let includeExtension = false;
@@ -45,16 +45,36 @@ export async function configureReplaceOp(
 
     switch (menu) {
       case 'setSearchValue':
-        searchValue = await input({
-          message: 'String to find:',
-          default: searchValue,
-        });
+        searchValue = await getStringWithFileUpdates(
+          { message: 'String to find:' },
+          (str, name) => {
+            const replaceOp = new ReplaceOp({
+              searchValue: str,
+              replaceValue,
+              includeExtension,
+            });
+
+            return replaceOp.apply(name);
+          },
+          files,
+        );
+
         break;
       case 'setReplaceValue':
-        replaceValue = await input({
-          message: 'String to replace with:',
-          default: replaceValue,
-        });
+        replaceValue = await getStringWithFileUpdates(
+          { message: 'String to replace with:' },
+          (str, name) => {
+            const replaceOp = new ReplaceOp({
+              searchValue,
+              replaceValue: str,
+              includeExtension,
+            });
+
+            return replaceOp.apply(name);
+          },
+          files,
+        );
+
         break;
       case 'toggleExtension':
         includeExtension = !includeExtension;

@@ -7,6 +7,7 @@ import {
   useState,
 } from '@inquirer/core';
 import { isNumber } from '@metools/tcheck';
+import { fileListPreviewLine, findLongestFileLength } from './file_preview';
 
 const numRe = /^\d+$/;
 
@@ -68,7 +69,6 @@ export async function getNumberWithFileUpdates(
           }
         };
 
-        // console.log('\nKey pressed:', key, '\n', 'readline:', rl.line);
         if (isEnterKey(key)) {
           done(num);
         } else if (key.name === 'right') {
@@ -99,9 +99,13 @@ export async function getNumberWithFileUpdates(
       });
 
       let i = 0;
-      const fileUpdates = filesList
-        .slice(0, 5)
-        .map((f) => `${f} → ${filenameCallback(num, f, i++)}`)
+      const filesToShow = filesList.slice(0, 5);
+      const longestFile = findLongestFileLength(filesToShow);
+
+      const fileUpdates = filesToShow
+        .map((f) =>
+          fileListPreviewLine(f, filenameCallback(num, f, i++), longestFile),
+        )
         .join('\n');
 
       return `${fileUpdates}\n${chalk.green('?')} ${prompt} ${num}${warning ? `\n${chalk.red(warning)}` : ''}`;

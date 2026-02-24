@@ -8,21 +8,9 @@ import { FileOp } from '@/string_ops/file_op';
 import { getFileList } from '@/utils/get_files';
 import { executeRename } from '@/utils/execute_rename';
 import { showFileListPreview } from '@/utils/file_preview';
-import {
-  configureLowercaseOp,
-  configureSentenceCaseOp,
-  configureTitleCaseOp,
-  configureUppercaseOp,
-} from '@/menus/case_menus';
-import {
-  configureTrimBetweenOp,
-  configureTrimEndOp,
-  configureTrimStartOp,
-} from '@/menus/trim_menus';
-import {
-  configureInsertEndOp,
-  configureInsertStartOp,
-} from '@/menus/insert_menus';
+import { configureCaseOp } from '@/menus/case_menus';
+import { configureTrimBetweenOp, configureTrimOps } from '@/menus/trim_menus';
+import { configureInsertOps } from '@/menus/insert_menus';
 import { configureReplaceOp } from './replace_menu';
 import { configureCounterOp } from './counter_menu';
 
@@ -49,6 +37,8 @@ export async function mainMenu(directory: string): Promise<void> {
 
     let addMore = true;
     while (addMore) {
+      console.clear();
+
       showFileListPreview(originalFileList, operations);
 
       const currentFileList = FileOp.applyAllToFiles(
@@ -56,57 +46,26 @@ export async function mainMenu(directory: string): Promise<void> {
         operations,
       );
 
+      const choices = [
+        { name: 'Insert Text', value: 'insert' },
+        { name: 'Replace Text', value: 'replace' },
+        { name: 'Trim text', value: 'trim' },
+        { name: 'Trim Between', value: 'trim-between' },
+        { name: 'Letter Case', value: 'case' },
+        { name: 'Add Counter', value: 'counter' },
+        { name: 'Apply', value: 'apply' },
+        { name: 'Quit', value: 'quit' },
+      ];
+
       const operationType = await select({
         message: 'Select an operation:',
-        choices: [
-          { name: 'To Lowercase', value: 'lowercase' },
-          { name: 'To Uppercase', value: 'uppercase' },
-          { name: 'To Title Case', value: 'titlecase' },
-          { name: 'To Sentence Case', value: 'sentencecase' },
-          { name: 'Replace Text', value: 'replace' },
-          { name: 'Insert at Start', value: 'insert-start' },
-          { name: 'Insert at End', value: 'insert-end' },
-          { name: 'Trim from Start', value: 'trim-start' },
-          { name: 'Trim from End', value: 'trim-end' },
-          { name: 'Trim Between', value: 'trim-between' },
-          { name: 'Add Counter', value: 'counter' },
-          { name: 'Apply', value: 'apply' },
-          { name: 'Quit', value: 'quit' },
-        ],
+        choices,
+        pageSize: choices.length,
       });
 
       switch (operationType) {
-        case 'quit': {
-          console.log(chalk.yellow('Exiting.\n'));
-          return;
-        }
-        case 'apply': {
-          addMore = false;
-          break;
-        }
-        case 'lowercase': {
-          const op = await configureLowercaseOp(currentFileList);
-          if (op) {
-            operations.push(op);
-          }
-          break;
-        }
-        case 'uppercase': {
-          const op = await configureUppercaseOp(currentFileList);
-          if (op) {
-            operations.push(op);
-          }
-          break;
-        }
-        case 'titlecase': {
-          const op = await configureTitleCaseOp(currentFileList);
-          if (op) {
-            operations.push(op);
-          }
-          break;
-        }
-        case 'sentencecase': {
-          const op = await configureSentenceCaseOp(currentFileList);
+        case 'insert': {
+          const op = await configureInsertOps(currentFileList);
           if (op) {
             operations.push(op);
           }
@@ -119,30 +78,8 @@ export async function mainMenu(directory: string): Promise<void> {
           }
           break;
         }
-        case 'insert-start': {
-          const op = await configureInsertStartOp(currentFileList);
-          if (op) {
-            operations.push(op);
-          }
-          break;
-        }
-        case 'insert-end': {
-          const op = await configureInsertEndOp(currentFileList);
-          if (op) {
-            operations.push(op);
-          }
-          break;
-        }
-        case 'trim-start': {
-          const result = await configureTrimStartOp(currentFileList);
-          if (result) {
-            operations.push(result);
-          }
-
-          break;
-        }
-        case 'trim-end': {
-          const result = await configureTrimEndOp(currentFileList);
+        case 'trim': {
+          const result = await configureTrimOps(currentFileList);
           if (result) {
             operations.push(result);
           }
@@ -157,12 +94,27 @@ export async function mainMenu(directory: string): Promise<void> {
 
           break;
         }
+        case 'case': {
+          const op = await configureCaseOp(currentFileList);
+          if (op) {
+            operations.push(op);
+          }
+          break;
+        }
         case 'counter': {
           const result = await configureCounterOp(currentFileList);
           if (result) {
             operations.push(result);
           }
           break;
+        }
+        case 'apply': {
+          addMore = false;
+          break;
+        }
+        case 'quit': {
+          console.log(chalk.yellow('Exiting.\n'));
+          return;
         }
         default: {
           break;

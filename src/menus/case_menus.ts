@@ -9,144 +9,75 @@ import {
 } from '@/string_ops/case';
 import { showFileListPreview } from '@/utils/file_preview';
 
-export async function configureLowercaseOp(
+export async function configureCaseOp(
   files: string[],
 ): Promise<FileOp | undefined> {
   let includeExtension = false;
+  let op: ToLowerCaseOp | ToUpperCaseOp | ToTitleCaseOp | ToSentenceCaseOp =
+    new ToLowerCaseOp({ includeExtension });
+
+  let caseTypeName: 'lowercase' | 'UPPERCASE' | 'Title Case' | 'Sentence case' =
+    'lowercase';
 
   while (true) {
     console.clear();
 
-    const op = new ToLowerCaseOp({ includeExtension });
-    showFileListPreview(files, [op]);
+    if (caseTypeName === 'lowercase') {
+      op = new ToLowerCaseOp({ includeExtension });
+    } else if (caseTypeName === 'UPPERCASE') {
+      op = new ToUpperCaseOp({ includeExtension });
+    } else if (caseTypeName === 'Title Case') {
+      op = new ToTitleCaseOp();
+    } else if (caseTypeName === 'Sentence case') {
+      op = new ToSentenceCaseOp();
+    }
 
-    const menu = await select({
-      message: 'Make the file name lowercase',
+    const toShow = op ? [op] : [];
+    showFileListPreview(files, toShow);
+
+    const caseType = await select({
+      message: 'Select case operation. Current: ' + caseTypeName,
       choices: [
+        { name: 'lowercase', value: 'lowercase' },
+        { name: 'UPPERCASE', value: 'uppercase' },
+        { name: 'Title Case', value: 'titlecase' },
+        { name: 'Sentence case', value: 'sentencecase' },
         {
           name: `Include extension? ${includeExtension ? 'Yes' : 'No'}`,
           value: 'toggleExtension',
         },
-        {
-          name: 'Cancel',
-          value: 'cancel',
-        },
-        {
-          name: 'Add File Op',
-          value: 'add',
-        },
+        { name: 'Apply', value: 'apply' },
+        { name: 'Cancel', value: 'cancel' },
       ],
     });
 
-    switch (menu) {
-      case 'toggleExtension':
+    switch (caseType) {
+      case 'lowercase': {
+        caseTypeName = 'lowercase';
+        break;
+      }
+      case 'uppercase': {
+        caseTypeName = 'UPPERCASE';
+        break;
+      }
+      case 'titlecase': {
+        caseTypeName = 'Title Case';
+        break;
+      }
+      case 'sentencecase': {
+        caseTypeName = 'Sentence case';
+        break;
+      }
+      case 'toggleExtension': {
         includeExtension = !includeExtension;
         break;
-      case 'cancel':
-        return undefined;
-      case 'add':
+      }
+      case 'apply': {
         return op;
-    }
-  }
-}
-
-export async function configureUppercaseOp(
-  files: string[],
-): Promise<FileOp | undefined> {
-  let includeExtension = false;
-
-  while (true) {
-    console.clear();
-
-    const op = new ToUpperCaseOp({ includeExtension });
-    showFileListPreview(files, [op]);
-
-    const menu = await select({
-      message: 'Make the file name UPPERCASE',
-      choices: [
-        {
-          name: `Include extension? ${includeExtension ? 'Yes' : 'No'}`,
-          value: 'toggleExtension',
-        },
-        {
-          name: 'Cancel',
-          value: 'cancel',
-        },
-        {
-          name: 'Add File Op',
-          value: 'add',
-        },
-      ],
-    });
-
-    switch (menu) {
-      case 'toggleExtension':
-        includeExtension = !includeExtension;
-        break;
-      case 'cancel':
+      }
+      case 'cancel': {
         return undefined;
-      case 'add':
-        return op;
+      }
     }
-  }
-}
-
-export async function configureTitleCaseOp(
-  files: string[],
-): Promise<FileOp | undefined> {
-  console.clear();
-
-  const op = new ToTitleCaseOp();
-  showFileListPreview(files, [op]);
-
-  const menu = await select({
-    message: 'Make the file name Title Case',
-    choices: [
-      {
-        name: 'Cancel',
-        value: 'cancel',
-      },
-      {
-        name: 'Add File Op',
-        value: 'add',
-      },
-    ],
-  });
-
-  switch (menu) {
-    case 'cancel':
-      return undefined;
-    case 'add':
-      return op;
-  }
-}
-
-export async function configureSentenceCaseOp(
-  files: string[],
-): Promise<FileOp | undefined> {
-  console.clear();
-
-  const op = new ToSentenceCaseOp();
-  showFileListPreview(files, [op]);
-
-  const menu = await select({
-    message: 'Make the file name Sentence case',
-    choices: [
-      {
-        name: 'Cancel',
-        value: 'cancel',
-      },
-      {
-        name: 'Add File Op',
-        value: 'add',
-      },
-    ],
-  });
-
-  switch (menu) {
-    case 'cancel':
-      return undefined;
-    case 'add':
-      return op;
   }
 }

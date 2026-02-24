@@ -2,14 +2,15 @@ import { CounterOp } from '@/string_ops/counter';
 import { FileOp } from '@/string_ops/file_op';
 import { showFileListPreview } from '@/utils/file_preview';
 import { getNumberWithFileUpdates } from '@/utils/number_input';
-import { input, number, select } from '@inquirer/prompts';
+import { singleCharacterInput } from '@/utils/single_character_input';
+import { number, select } from '@inquirer/prompts';
 
 export async function configureCounterOp(
   files: string[],
 ): Promise<FileOp | undefined> {
   let counterStart = 1;
   let position = 0;
-  let paddedLength = 0;
+  let paddedLength = 1;
   let paddingChar = '0';
   let fromStart = true;
   let includeExtension = false;
@@ -101,7 +102,7 @@ export async function configureCounterOp(
         paddedLength = await getNumberWithFileUpdates(
           {
             message: 'Padded Length:',
-            min: 0,
+            min: 1,
             currentValue: paddedLength,
           },
           (num, name, index) => {
@@ -119,13 +120,38 @@ export async function configureCounterOp(
 
         break;
       case 'setPaddingChar':
-        const newPadding = await input({
-          message: 'Padding character:',
-          default: paddingChar,
-          prefill: 'editable',
-        });
+        // const newPadding = await input({
+        //   message: 'Padding character:',
+        //   default: paddingChar,
+        //   prefill: 'editable',
+        //   validate: (str) => {
+        //     console.log('Validate', str);
+        //     return (
+        //       str.length === 1 || 'Please enter a single character for padding'
+        //     );
+        //   },
+        //   pattern: /^.$/, // Ensure only a single character is accepted
+        // });
 
-        paddingChar = newPadding;
+        // paddingChar = newPadding;
+
+        paddingChar = await singleCharacterInput(
+          {
+            message: 'Padding character:',
+            defaultValue: paddingChar,
+          },
+          (str, name, index) => {
+            const op = new CounterOp({
+              counterStart,
+              position,
+              paddedLength,
+              paddingChar: str,
+            });
+
+            return op.apply(name, index);
+          },
+          files,
+        );
 
         break;
       case 'toggleFromStart':

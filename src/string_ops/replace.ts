@@ -23,6 +23,10 @@ export class ReplaceOp extends FileOp {
   }
 
   apply(filename: string): string {
+    if (this.searchValue === '') {
+      return filename;
+    }
+
     if (!this.includeExtension) {
       const { name, extension } = extractFileNameAndExtension(filename);
       const newName = name.replaceAll(this.searchValue, this.replaceValue);
