@@ -46,8 +46,8 @@ export async function configureCaseOp(
           name: `Include extension? ${includeExtension ? 'Yes' : 'No'}`,
           value: 'toggleExtension',
         },
-        { name: 'Apply', value: 'apply' },
         { name: 'Cancel', value: 'cancel' },
+        { name: 'Apply', value: 'apply' },
       ],
     });
 
